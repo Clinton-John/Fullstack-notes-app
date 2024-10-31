@@ -4,6 +4,7 @@ import api from '../api'
 import { useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import '../styles/Form.css'
+import LoadingIndicator from "./LoadingIndicator";
 
 
 function Form({route, method}){
@@ -18,13 +19,19 @@ function Form({route, method}){
 
         try{
             const res = await api.post(route, {username, password})
-            if (method === 'Login'){
-                localStorage.setItem(ACCESS_TOKEN, res.data.acccess);
-                localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                navigate("/")
-            }else{
-                navigate("/login")
+
+            if (method === 'login') {
+                if (res.data.access && res.data.refresh) {  // Check tokens exist
+                    localStorage.setItem(ACCESS_TOKEN, res.data.access);
+                    localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+                    navigate("/");  // Redirect to homepage on successful login
+                } else {
+                    console.error("Login failed: Tokens missing");
+                }
+            } else {
+                navigate("/login");  // Redirect to login after registration
             }
+
 
         }catch(error){
             alert(error)
@@ -37,7 +44,7 @@ function Form({route, method}){
     return (
         <form action="" onSubmit={handleSubmit} className="form-container" >
             <h1 > {name} </h1>
-            <input
+            <input 
                 className="form-input"
                 type="text"
                 value={username}
@@ -51,6 +58,8 @@ function Form({route, method}){
                 onChange={(e)=>{setPassword(e.target.value)}}
                 placeholder="Password"
             />
+            {loading && <LoadingIndicator />}
+
             <button className="form-button" type="submit" >
                 {name}
             </button>

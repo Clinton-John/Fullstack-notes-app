@@ -266,3 +266,99 @@ do the same to the login file.
 NOTE: The route should be the same to the one specified in the backend urls 
 
 If the frontend works as it was specified, run the server for the backend application, and then for the frontend 
+
+
+WORKING WITH THE NOTES --ALLOWING USER CREATE THEIR NOTES 
+
+1.Building the home page 
+create a new note, view all available notes, and delete a note 
+Home.jsx >>>.
+function Home(){
+    // send an authorized request to get all the notes needed 
+    const [notes, setNotes] = useState([]);
+    const [content, setContent] = useState("");
+    const [title, setTitle] = useState("");
+
+    // to send a request that gets all of the already available notes
+    const getNotes = () => {
+        api.get('api/notes/') //this redirects to the route specified in the backend 
+        .then((res)=>res.data) // this gets the data received from the backend 
+        .then((data)=>setNotes(data)) // using the 
+        .catch((error)=>alert(error))
+    }
+
+    // the functionality takes in the id as an argument
+    const deleteNote = ({id}) => {
+        // pass the id and the notes 
+        api.delete(`/api/notes/delete/${id}/`).then((res)=>{
+            
+            if(res.status === 204){
+                alert("Note was Deleted")
+            }else{
+                alert("Couldn't delete the note")
+            }
+        }).catch((error)=> alert(error))
+
+        getNotes() // after deletion reload the page again to show the functionalities 
+    }
+
+    const createNote = (e) =>{
+        e.preventDefault()
+
+        api.post('/api/notes/', {content, title}).then((res)=>{ // the url specified in the backend 
+            if (res.status == 201){
+                alert("Note Successfully created !! ")
+            } else{
+                alert("Failed to create the note ")
+            }
+
+        }).catch((err) => alert(err))
+        getNotes(); // refresh the home page to get all pages including the newly created 
+    }
+    return(
+        <div>
+
+        </div>
+    )
+}
+
+// useEffect() is used when a user visits a page then the specifed functionality works 
+
+Displaying the notes
+create a new component, Note.jsx
+Note.jsx >>>
+function Note({note, onDelete}) {
+  const formatedDate = new Date(note.created_at).toLocaleDateString("en-US")
+  
+  return (
+    <div  className='note-container'>
+      <p className='note-title' >{note.title}</p>
+      <p className='note-content' >{note.content}</p>
+      <p className='note-date' >{formatedDate}</p>
+      <button className='delete-note' onClick={() => onDelete(note.id)} >Delete</button>
+
+    </div>
+  )
+}
+
+in Home.jsx import the note component and pass the note for each and every field imported 
+
+            <div>
+                {/* Displays all of the notes that we have through a different component */}
+                <h2>Notes</h2>
+                {notes.map((note) => <Note note={note}  onDelete={deleteNote} key={note.id} />)}
+            </div>
+    
+The functionality perfectly works
+style the page 
+
+Adding the Login indicator
+Create a new item and add the information 
+
+DEPLOYING THE DATABASE
+create an account with choreo, 
+deploy the database,
+deploy the frontend,
+
+
+choreo >> dependancies >> database >>

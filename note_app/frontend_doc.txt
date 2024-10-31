@@ -2,3 +2,54 @@ create a new react project using react
 npm create vite@latest frontend --template react
 
 After starting the project, move to the directory and install the following packages 
+
+CREATING THE DATABASE 
+Login to choreo >> dependancies >> database 
+create a new database and copy paste the credentials given to a .env file in the django backend 
+
+Now connect the database to django and provision it using the python manage.py file 
+settings.py >>
+    pip install dotenv
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    now the database is set to the new file 
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'HOST' : os.getenv("DB_HOST"),
+        'PASSWORD': os.getenv("DB_PWD"),
+        'PORT':os.getenv("DB_PORT")
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+    }
+    }
+This configures the database and running it makes it work perfectly 
+run python manage.py migrate 
+after setting teh environment variables, run teh server and the project should run as expected 
+
+BACKEND DEPLOYMENT 
+To deploy the backend, you have to create a git repository to allow for the continous deployment 
+
+in the note_app which is the backend, create a new folder .choreo
+create a new file endpoints.yaml 
+This is where we will add the end points that should expose and that we want to show from this backend 
+version 0.1
+
+endpoints.yaml >>> inside the .choreo folder 
+    endpoints:
+    - name: "REST API"
+        port: 8000
+        type: REST
+        networkVisibility: Public
+        context: /
+
+create a new file known as Procfile in the root folder
+Procfile >>>
+    it specifies the command to execute our website and make it running 
+    web: python manage.py runserver 0.0.0.0:8000
+    This is the command that will be executed when the backend is deployed and shows that the website can run on any public IP address 
+
+The github repository must be set to public because choreo only allows working with public repositories 

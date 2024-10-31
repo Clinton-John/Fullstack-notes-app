@@ -1,0 +1,3 @@
+services >> windows Time >>> right click >> property  >>setup type >> from manual to automatic then stop >> start >> apply >> ok 
+
+Time and date settings > > tab3 then change sever and apply 

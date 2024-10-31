@@ -1,3 +1,5 @@
 env/
 jwt.txt
 notes_doc.txt 
+.env 
+db.sqlite3

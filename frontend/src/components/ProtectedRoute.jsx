@@ -9,7 +9,7 @@ function ProtectedRoute({children}){
     const [isAuthorized, setIsAuthorized] = useState(null);
 
     useEffect(()=> {
-        auth().catch(setIsAuthorized(false))
+        auth().catch(()=>setIsAuthorized(false))
     }, [])
 
     const refreshToken = async () =>{
@@ -54,7 +54,7 @@ function ProtectedRoute({children}){
         return <div>Loading page ... </div>
     }
 
-    isAuthorized ? children :<Navigate /> ;
+    return isAuthorized ? children :<Navigate to='/login' /> ;
 
 }
 
