@@ -53,3 +53,4 @@ Procfile >>>
     This is the command that will be executed when the backend is deployed and shows that the website can run on any public IP address 
 
 The github repository must be set to public because choreo only allows working with public repositories 
+In the choreo websiet, create a new project and authorize through github 
