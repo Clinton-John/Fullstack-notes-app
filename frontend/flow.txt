@@ -1,0 +1,39 @@
+create react app
+create components, pages and styles folder 
+create api.js, constants.js 
+in constants.js >>
+    define the ACCESS_TOKEN and REFRESH_TOKEN
+create a .env file and in it >>
+    VITE_API_URL ="backend url" // in this case its the localhost 
+in the api.js file >>
+    import axios
+    create a new const api with the axios.create
+    set the baseURL to the created .env file : baseURL:import.meta.env.VITE_API_URL
+    api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}` // this is how to pass a jwt token 
+        }
+        return config
+
+    },
+    (error) => {
+        return Promise.reject(error)
+
+    }
+    )
+create a new function component ProtectedRoute 
+ProtectedRoute.js >> import jwtDecoder, 
+    create a state variable [isAuthorized, setIsAuthorized] = useState(null)
+    inside the function create two arrow functions refreshToken and auth
+    in auth(), check if there is a token, if not setIsAuthorized(false), if true check if its expired and setIsAuthorized(false) and call the refreshToken() to get a new ACCESS_TOKEN 
+    using the useEffect() hook, add the functioanlity to call the auth and setIsAuthorized(false) incase there is an error
+
+FRONTEND SECTION
+in the components folder, create a generic component Form.jsx 
+in the form.jsx, using useState() hook, declare set a username and a password 
+the form component takes in two parameters, the route and the method
+in the return, define the html form 
+create a handleSubmit() function to handle the submit functionality 
+if the method is a login then set the ACCESS_TOKEN and the REFRESH_TOKEN token from the localstorage

@@ -1,0 +1,4 @@
+create a new react project using react
+npm create vite@latest frontend --template react
+
+After starting the project, move to the directory and install the following packages 

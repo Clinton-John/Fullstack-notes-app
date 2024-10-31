@@ -1,0 +1,268 @@
+create a new react project using react
+npm create vite@latest frontend --template react
+
+After starting the project, move to the directory and install the following package
+
+axios
+react-react-dom
+jwt-decode
+
+create the folders 
+1.components
+2.pages
+3.styles
+
+files in the src folders
+api.js
+constants.js 
+create a .env in the rood folder 
+
+BUILDING THE PROJECT 
+we will have the tokens stored in the local storage hence the need for variables that will be used to access them 
+export const ACCESS_TOKEN = "access";
+export const REFRESH_TOKEN = "refresh";
+
+api.js >>>>
+This code snippet is setting up a custom Axios instance to make HTTP requests to an API. Here’s a detailed breakdown of each part:
+
+    import axios from "axios"; // a library used to make requests from a browser
+    import { ACCESS_TOKEN } from "./constants"; //Imports a variable named ACCESS_TOKEN from a constants module
+
+
+    const api = axios.create({ // Creates a new instance of Axios, stored in the api constant, with custom configurations.
+        baseURL: import.meta.env.VITE_API_URL // Sets the baseURL property for the Axios instance to import.meta.env.VITE_API_URL.
+    })
+//By setting baseURL, any requests made with this api instance will automatically prefix URLs with VITE_API_URL.
+
+This setup allows you to call api.get(), api.post(), etc., without manually specifying the full URL each time; only the endpoint is needed, thanks to baseURL.
+The configuration also provides easy access to the ACCESS_TOKEN, which might be used later to set up an authorization header for secure requests.
+In the .env file
+    VITE_API_URL = "http://127.0.0.1:8000/"
+With baseURL set to http://127.0.0.1:8000/, any request made with api will automatically prefix this URL. For instance: api.get("/some-endpoint")  
+This request will be sent to http://127.0.0.1:8000/some-endpoint because baseURL is automatically prefixed.
+
+// ADDING AN AUTHORIZATION TOKEN TO THE HEADER 
+
+This code is setting up an Axios request interceptor to automatically attach a JSON Web Token (JWT) to each outgoing API request if it’s available. Here’s how it works line by line:
+
+    api.interceptors.request.use(
+        (config) => { //this is the  function that handles the request configuration
+            const token = localStorage.getItem(ACCESS_TOKEN);
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}` // this is how to pass a jwt token 
+            }
+            return config
+
+        },
+        (error) => { //function to handle any errors that occur during the request setup
+            return Promise.reject(error)
+
+        }
+    )     
+
+api.interceptors.request.use adds an interceptor to the api Axios instance. The interceptor listens for every outgoing request, allowing you to modify the request configuration before it’s sent.    
+    if (token) { config.headers.Authorization = Bearer ${token} }:
+The above line Checks if a token exists. If it does, it sets the Authorization header in the config object, formatting the token as a Bearer token (Bearer ${token}).
+This header is then included in the HTTP request, which is essential for authenticating requests to endpoints that require authorization.
+
+This interceptor ensures that every API request automatically includes the JWT token (if available), without needing to manually attach it to each request. This is particularly useful for APIs that use token-based authentication, as it helps streamline secure communication between the frontend and backend.
+
+
+useEffect() hook in react
+it perfoms side effects in functional components 
+
+Common use cases for useEffect include:
+Data fetching: Making API requests when a component loads.
+Event listeners: Adding or removing listeners for actions (like clicks or keypresses).
+Subscriptions: Managing subscriptions (such as WebSocket or database listeners).
+Updating the DOM: Manually changing parts of the DOM when needed.
+Cleanup: Cleaning up resources, such as timers or listeners, when the component unmounts.
+
+// WRITING PROTECTED ROUTES
+components>>>
+create a new file ProtectedRoutes.js 
+it represents a wrapper for a protected route 
+if we wrap something in a protected route then we need have an authorization token before we can access the route 
+
+// check if a person is logged in before accessing the routes. the children components are passed to it  
+function ProtectedRoute({children}){
+    const [isAuthorized, setIsAuthorized] = useState(null); // the state variable and the function that updates it . defins whether a user is logged in or not 
+
+    useEffect(()=> {
+        auth().catch(setIsAuthorized(false))
+    }, [])
+
+    // function to refresh the token 
+    const refreshToken = async () =>{
+        // get the refresh token stored in the local storage 
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN)
+
+        try{
+            // send a request to the backend with the refresh token to get a new access token 
+            const res = api.post("api/token/refresh/", {refresh:refreshToken}); // this is an api that was  written on the backend hence its an easy process of callin it 
+
+            // if it was a success, then get set the newly ACCESS_TOKEN token received from the apu  
+            if(res.status === 200){
+                localStorage.setItem(ACCESS_TOKEN, res.data.access)
+                setIsAuthorized(true)
+            }else{
+                setIsAuthorized(false)
+            }
+
+        // Incase of an error return the value that was passed 
+        }catch{
+            console.log(error)
+            setIsAuthorized(false)
+        }
+
+    }
+
+    // function to authenticate any user if there is an available refresh token or note 
+    const auth = async () => {
+        // get the ACCESS_TOKEN from the local storage 
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if(!token){
+            setIsAuthorized(false); // if not token available then setIsAuthorized to false 
+            return
+        }
+        // if it is available then decode it, get its expiration date in seconds
+        const decoded = jwtDecode(token)
+        const tokenExpiration = decoded.exp
+        const now = Date.now() / 1000 // get the current time and convert to seconds 
+
+        // if the token is expired then call the refreshToken function to refresh the function to refresh the function 
+        if(tokenExpiration < now ){
+            await refreshToken()
+        }else{
+            setIsAuthorized(true)
+        }
+
+    }
+
+    if(isAuthorized == null){
+        return <div>Loading page ... </div>
+    }
+
+    isAuthorized ? children :<Navigate /> ;
+
+}
+
+// That is all for the protected routes that is needed for the process 
+
+NAVIGATION PAGES AND WEBSITE FUNCTIONALITIES 
+create 4 functional components in the pages folder 
+    Home.js 
+    Login.js
+    Register.js
+    NotFound.js
+
+in App.js >>>
+    create two functions 
+function Logout(){ // handles the logout function in the website by clearing the localstorage 
+  localStorage.clear()
+  return <Navigate  to='/login' />
+}
+
+function RegisterAndLogout(){ // clears the localstorage first before registering a new user 
+  localStorage.clear()
+  return <Register />
+}
+
+in the App() function, under the return section, 
+        <BrowserRouter>
+        // Defines all of the routes that can be passed 
+        <Routes>
+        // first route is the home route which can only be accessed through when a user is loged in 
+            <Route path='/'
+            element={
+            <ProtectedRoute>
+                <Home></Home>
+            </ProtectedRoute>
+            }
+        
+        />
+        <Route  path='/login' element={<Login></Login>} /> // Login route 
+        <Route  path='/logout' element={<Logout></Logout>} /> // Login route 
+        <Route  path='/register' element={<Register></Register>} />
+        <Route  path='*' element={<NotFound></NotFound>} />
+      </Routes>
+    
+    </BrowserRouter>
+
+Through the urls, you can try accessing the different pages 
+In the NotFound.jsx page, using html and css you create the page for a not found 
+
+Creating a generic form to hanle both the usr login and  registration
+The form will get the username and password and submit it to either the login or register route 
+create a new component Form.jsx
+Form.jsx >> 
+    // the route is the route which we want to go to when we submit, method is which handles what is submited 
+    function Form({route, method}){
+
+    return (
+        <form action="" onSubmit={handleSubmit} className="form-container" >
+            <h1 > {name} </h1>
+            <input
+                className="form-input"
+                type="text"
+                value={username}
+                onChange={(e)=>{setUsername(e.target.value)}}
+                placeholder="Username"
+            />
+            <label htmlFor="">Password</label>
+            <input
+                className="form-input"
+                type="password"
+                value={password}
+                onChange={(e)=>{setPassword(e.target.value)}}
+                placeholder="Password"
+            />
+            <button className="form-button" type="submit" >
+                {name}
+            </button>
+
+        </form>
+    )
+
+    }
+
+// To handle the submit form
+const handleSubmit = (e) =>{
+    setLoading(true)
+    // Try to send a request to whatever route should handle the following functionaility
+        try{
+
+            //sending the request through the api 
+            const res = await api.post(route, {username, password})
+            if (method === 'Login'){
+                localStorage.setItem(ACCESS_TOKEN, res.data.acccess);
+                localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+                navigate("/")
+            }else{
+                navigate("/login")
+            }
+
+
+        }catch(error){
+            alert(error)
+        }finally{
+            setLoading(false)
+        }
+
+
+
+    e.preventDefault()
+
+}
+Styling the pages, 
+styles>> 
+create a new file Form.css 
+    Form.css >>
+after adding the styling, import it into the Form.jsx then export the preventDefault
+Now the form component can be used both from the login and the register section 
+Register.jsx >>
+  return  <Form  route="/api/user/register/ " method="register" ></Form>
+do the same to the login file.
+NOTE: The route should be the same to the one specified in the backend urls 
+
+If the frontend works as it was specified, run the server for the backend application, and then for the frontend 
